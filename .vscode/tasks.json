@@ -6,6 +6,7 @@
             "command": "clang++",
             "args": [
                 "-g",                // Enable debug information
+                "-std=c++17",
                 "${workspaceRoot}/src/concept.cpp", // Your source file
                 "-o", "${workspaceRoot}/build/debug/concept" // Output executable
             ],
