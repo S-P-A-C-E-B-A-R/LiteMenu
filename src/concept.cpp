@@ -56,6 +56,7 @@ void toggleMenuItemTitle(Menu::MenuItem& item) {
 }
 
 void setup(Menu& rootMenu) {
+    rootMenu.AddMenuItem("Exit/UpLevel", true, false);
     rootMenu.AddMenuItem("Toggle Option - Off", true, false, toggleMenuItemTitle);
 }
 
@@ -69,7 +70,6 @@ void printMenu(const Menu& menu) {
             std::cout << (i == menu.getCurrentSelect() ? " > " : "   ") << entries[i].title << (entries[i].state ? " [On]" : " [Off]") << "\n";
         }
     }
-    std::cout << " > Back/Up/Exit\n";
 }
 
 int main()
