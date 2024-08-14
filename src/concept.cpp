@@ -13,13 +13,27 @@ class Menu {
             bool visible;                           // Menu Entry Render Status
             bool state;                             // Menu Entry Optional State
             std::function<void(MenuItem&)> action;  // Function assigned to Menu Entry
+        
+            // MenuItem Constructor
+            MenuItem(const std::string& text, bool visible, bool state, std::function<void(MenuItem&)> action = nullptr):
+                title(text), visible(visible), state(state), action(action){}
         };
 
         // Class Constructor
-        Menu(const std::string& heading) : heading(heading), currentLevel(0), currentSelect(0), previousSelect(0), previousMenu(nullptr){};
-    
-        // Basic Setter/Getters
+        Menu(const std::string& heading):
+            heading(heading), currentLevel(0), currentSelect(0), previousSelect(0), previousMenu(nullptr)
+            {}
+        
+        // Menu Read Only
         const std::string& getHeading() const {return heading;};
+        const std::vector<MenuItem>& getEntries() const { return entries; }
+        size_t getCurrentSelect() const { return currentSelect; }
+
+        // Menu Write/Update
+        void AddMenuItem(const std::string& title, bool visible, bool state, std::function<void(MenuItem&)> action = nullptr){
+            entries.emplace_back(title,visible,state,action);
+        };
+
     private:
         std::string heading;            // Menu Heading
         std::vector<MenuItem> entries;  // List Menu Entries
@@ -30,10 +44,39 @@ class Menu {
         Menu*  previousMenu;            // Previous Menu Level
 };
 
+// Function to toggle the status and title of a menu item
+void toggleMenuItemTitle(Menu::MenuItem& item) {
+    if (item.state) {
+        item.title = item.title.substr(0, item.title.find(" - On")) + " - Off";
+        item.state = false;
+    } else {
+        item.title = item.title.substr(0, item.title.find(" - Off")) + " - On";
+        item.state = true;
+    }
+}
+
+void setup(Menu& rootMenu) {
+    rootMenu.AddMenuItem("Toggle Option - Off", true, false, toggleMenuItemTitle);
+}
+
+void printMenu(const Menu& menu) {
+    std::cout << "\n" << menu.getHeading() << "\n";
+    std::cout << std::string(menu.getHeading().length(), '=') << "\n";
+    
+    const auto& entries = menu.getEntries();
+    for (size_t i = 0; i < entries.size(); ++i) {
+        if (entries[i].visible) {
+            std::cout << (i == menu.getCurrentSelect() ? " > " : "   ") << entries[i].title << (entries[i].state ? " [On]" : " [Off]") << "\n";
+        }
+    }
+    std::cout << " > Back/Up/Exit\n";
+}
+
 int main()
 {
     Menu rootMenu{"Main Menu"};
-    cout << rootMenu.getHeading() << endl;
-
+    setup(rootMenu);
+    printMenu(rootMenu);
+    
     return 0;
 };
