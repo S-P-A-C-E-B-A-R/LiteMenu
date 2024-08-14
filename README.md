@@ -6,10 +6,10 @@
 The `TextMenu` class in C++ represents a text-based menu system designed for embedded devices. This class supports multiple levels of menus with headings and entries, each capable of navigating up/down through submenu levels, toggling states (On/Off), or calling external functions. It maintains the state of the current menu level and the selected item, and provides show/hide functionality for menu entries. 
 
 ### Features
-- **Navigation**: Supports navigation between menu levels and entries using configurable input controls (e.g., Up, Down, Enter).
+- **Navigation**: Supports navigation between menu levels and entries using configurable input controls (e.g., Up/Down/Enter, Down/Enter, Short/Long Press).
 - **State Management**: Remembers the current submenu level and selected item.
 - **Entry Status**: Menu entries can be shown or hidden dynamically.
-- **Abstract Controls**: Designed to work with any three-button interface or display system.
+- **Abstract Controls**: Designed to work with any one to three input interface or display system.
 - **Boundary Behavior**: Configurable behavior for scrolling past the top or bottom of the menu.
 
 ### Memory and Performance
