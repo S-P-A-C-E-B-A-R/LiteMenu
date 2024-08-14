@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-litemenu-concept", // task name for build step
+            "command": "clang++",
+            "args": [
+                "-g",                // Enable debug information
+                "${workspaceRoot}/src/concept.cpp", // Your source file
+                "-o", "${workspaceRoot}/build/debug/concept" // Output executable
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}
