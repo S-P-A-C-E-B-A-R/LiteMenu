@@ -3,115 +3,142 @@
 #include <functional>
 #include <string>
 #include <optional>
+#include <memory>
+#include <cctype>
 
 using namespace std;
 
 class Menu {
-    public:
-        // Data Structure for an Menu Item
-        struct MenuItem{
+    private:
+        Menu* rootMenu;                 // Pointer to the root menu
+        std::string heading;            // Menu Heading
+        std::vector<Menu*> subMenus;    // List subMenus
+        bool behaveLoop;                // Loop at limits when true
+
+        // Data Structure for a Menu Item
+        struct MenuItem {
             std::string title;                      // Display Text of Menu Entry
             bool visible;                           // Menu Entry Render Status
             bool state;                             // Menu Entry Optional State
             std::function<void()> action;           // Function assigned to Menu Entry
-        
+
             // MenuItem Constructor
-            MenuItem(const std::string& text, bool visible, bool state, std::function<void()> action = nullptr):
-                title(text), visible(visible), state(state), action(action){}
+            MenuItem(const std::string& text, bool visible, bool state, std::function<void()> action = nullptr)
+                : title(text), visible(visible), state(state), action(action) {}
         };
 
+        std::vector<MenuItem> entries;  // List Menu Entries
+
+    public:
+        Menu* activeMenu;              // Currently active Menu
+        size_t activeSelect;          // Currently active Selection
+        Menu* previousMenu;            // Previous active Menu
+        size_t previousSelect;        // Previous active Selection
+
         // Navigate enum
-        enum class HMI{
+        enum class HMI {
             up,
             down,
             enter
         };
 
         // Class Constructor
-        Menu(const std::string& heading, bool loop):
-            heading(heading), currentLevel(0), currentSelect(0), previousSelect(0), previousMenu(nullptr), behaveLoop(loop)
-            {}
+        Menu(const std::string& heading, bool loop)
+            : heading(heading),
+              activeSelect(0),
+              previousSelect(0),
+              previousMenu(nullptr),
+              behaveLoop(loop),
+              rootMenu(this),
+              activeMenu(this) {}
 
         // Class Destructor
         ~Menu() {
-            // Cleanup code if needed
+            for (auto submenu : subMenus) {
+                delete submenu;
+            }
         }
-        
+
         // Menu Read Only
-        const std::string& getHeading() const {return heading;};
+        const std::string& getHeading() const { return heading; }
         const std::vector<MenuItem>& getEntries() const { return entries; }
-        size_t getCurrentSelect() const { return currentSelect; }
+        size_t getactiveSelect() const { return activeSelect; }
 
         // Menu Navigation
-        void navigate(HMI navigation){
-            switch (navigation){
+        void navigate(HMI navigation) {
+            switch (navigation) {
                 case HMI::enter:
-                    // Check if top of menu
-                    if (currentSelect == 0) {
-                        if (previousMenu != nullptr) {
-                            currentSelect = previousMenu->previousSelect;
-                            *this = *previousMenu;
-                        }
-                    }
-                    // Check if action is associated with entrys
-                    if (entries[currentSelect].action) {
-                        entries[currentSelect].action();
+                    // Check if action is associated with entries
+                    if (activeMenu->entries[activeMenu->activeSelect].action) {
+                        activeMenu->entries[activeMenu->activeSelect].action();
+                    } else {
+                        cout << "No Action" << endl;
                     }
                     break;
 
                 case HMI::up:
-                    if (currentSelect > 0) {
-                        --currentSelect;
-                    } else if (behaveLoop) {
-                        currentSelect = entries.size() - 1;
+                    if (activeMenu->activeSelect > 0) {
+                        --activeMenu->activeSelect;
+                    } else if (activeMenu->behaveLoop) {
+                        activeMenu->activeSelect = activeMenu->entries.size() - 1;
                     }
                     break;
 
                 case HMI::down:
-                    if (currentSelect < entries.size() -1) {
-                        ++currentSelect;
-                    } else if (behaveLoop) {
-                        currentSelect = 0;
+                    if (activeMenu->activeSelect < activeMenu->entries.size() - 1) {
+                        ++activeMenu->activeSelect;
+                    } else if (activeMenu->behaveLoop) {
+                        activeMenu->activeSelect = 0;
                     }
                     break;
-
             }
-        };
+        }
 
         // Menu Write/Update
-        void AddMenuItem(const std::string& title, 
-                         bool visible, 
-                         bool state, 
-                         std::function<void()> action = nullptr){
-            entries.emplace_back(title,visible,state,action);
-        };
+        void AddMenuItem(const std::string& title,
+                         bool visible,
+                         bool state,
+                         std::function<void()> action = nullptr) {
+            activeMenu->entries.emplace_back(title, visible, state, action);
+        }
+
+        // Add SubMenu
+        void AddSubMenu(const std::string& title, Menu* submenu) {
+            // Set the current menu level as previous menu level
+            submenu->previousMenu = activeMenu;
+
+            // Add "Back" option to submenu
+            submenu->AddMenuItem("Back", true, false, [this, submenu]() {
+                activeMenu = submenu->previousMenu;
+            });
+
+            // Store submenu as a MenuItem with an action to navigate into it
+            AddMenuItem(title, true, false, [this, submenu]() {
+                activeMenu = submenu;
+            });
+
+            // Add the submenu to the list of submenus
+            activeMenu->subMenus.emplace_back(submenu);
+        }
 
         // Update Menu Item
-        void updateMenuItem(size_t index, 
-                            std::optional<bool> newState = std::nullopt, 
+        void updateMenuItem(size_t index,
+                            std::optional<bool> newState = std::nullopt,
                             std::optional<std::string> newTitle = std::nullopt,
-                            std::optional<bool> newVisible = std::nullopt) { 
-            auto& item = entries[index];
-            if (newState.has_value()) {
-                item.state = newState.value();
+                            std::optional<bool> newVisible = std::nullopt) {
+            if (index < activeMenu->entries.size()) {
+                auto& item = activeMenu->entries[index];
+                if (newState.has_value()) {
+                    item.state = newState.value();
+                }
+                if (newTitle.has_value()) {
+                    item.title = newTitle.value();
+                }
+                if (newVisible.has_value()) {
+                    item.visible = newVisible.value();
+                }
             }
-            if (newTitle.has_value()) {
-                item.title = newTitle.value();
-            }
-            if (newVisible.has_value()){
-                item.visible = newVisible.value();
-            }
-        };
-
-    private:
-        std::string heading;            // Menu Heading
-        std::vector<MenuItem> entries;  // List Menu Entries
-        std::vector<Menu> subMenus;     // List subMenus
-        size_t currentLevel;            // State Menu Level
-        size_t currentSelect;           // State Menu Selection
-        size_t previousSelect;          // Previous Menu Selection
-        Menu*  previousMenu;            // Previous Menu Level
-        bool   behaveLoop;              // Loop at limits when ture
+        }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,12 +147,10 @@ class Menu {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <memory>
-#include <cctype>
-
 class ExampleMenuManager {
 public:
-    ExampleMenuManager() : rootMenu(std::make_unique<Menu>("Main Menu", false)) {
+    ExampleMenuManager(const std::string& title, bool loop) 
+        : rootMenu(std::make_unique<Menu>(title, loop)) {
         setup();
     }
 
@@ -140,20 +165,40 @@ private:
     std::unique_ptr<Menu> rootMenu;
 
     void setup() {
-        rootMenu->AddMenuItem("Exit/UpLevel", true, false, [this]() { rootMenu.reset(); });
+        rootMenu->AddMenuItem("Exit", true, false, [this]() { rootMenu.reset(); });
         rootMenu->AddMenuItem("Toggle Option - Off", true, false, [this]() { toggleMenuItem(); });
+
+        // Create a new submenu dynamically
+        auto submenuAlpha = new Menu("SubMenu Alpha", false);
+        rootMenu->AddSubMenu("SubMenu Alpha", submenuAlpha);
+
+        // Add items to the submenu
+        submenuAlpha->AddMenuItem("Alpha Option", true, false);
+        submenuAlpha->AddMenuItem("Alpha Option - Off", true, false, [this]() { toggleMenuItem(); });
+
+        // Create a new submenu dynamically
+        auto submenuBeta = new Menu("SubMenu Beta", false);
+        rootMenu->AddSubMenu("SubMenu Beta", submenuBeta);
+
+        // Add items to the submenu
+        submenuBeta->AddMenuItem("Beta Option", true, false);
+        submenuBeta->AddMenuItem("Beta Option - Off", true, false, [this]() { toggleMenuItem(); });
     }
 
     void printMenu() const {
-        std::cout << "\n" << rootMenu->getHeading() << "\n";
-        std::cout << std::string(rootMenu->getHeading().length(), '=') << "\n";
-        
-        const auto& entries = rootMenu->getEntries();
+        if (!rootMenu || !rootMenu->activeMenu) return;
+
+        const auto& entries = rootMenu->activeMenu->getEntries();
+        if (entries.empty()) return;
+
+        std::cout << "\n" << rootMenu->activeMenu->getHeading() << "\n";
+        std::cout << std::string(rootMenu->activeMenu->getHeading().length(), '=') << "\n";
+
         for (size_t i = 0; i < entries.size(); ++i) {
             if (entries[i].visible) {
-                std::cout << (i == rootMenu->getCurrentSelect() ? " > " : "   ") 
-                          << (entries[i].state ? " [T] " : " [F] ") 
-                          << entries[i].title 
+                std::cout << (i == rootMenu->activeMenu->getactiveSelect() ? " > " : "   ")
+                          << (entries[i].state ? " [T] " : " [F] ")
+                          << entries[i].title
                           << "\n";
             }
         }
@@ -174,41 +219,49 @@ private:
 
         switch (command) {
             case 'W':
-                rootMenu->navigate(Menu::HMI::up);
+                rootMenu->activeMenu->navigate(Menu::HMI::up);
                 break;
             case 'S':
-                rootMenu->navigate(Menu::HMI::down);
+                rootMenu->activeMenu->navigate(Menu::HMI::down);
                 break;
             case 'D':
-                rootMenu->navigate(Menu::HMI::enter);
+                rootMenu->activeMenu->navigate(Menu::HMI::enter);
                 break;
             default:
                 std::cout << "Invalid input!" << std::endl;
                 break;
         }
 
-        std::cout << endl;
+        // After navigation, check if the menu has changed
+        if (!rootMenu || !rootMenu->activeMenu) {
+            std::cout << "Menu is no longer available!" << std::endl;
+            return;
+        }
     }
 
     void toggleMenuItem() {
+        if (!rootMenu || !rootMenu->activeMenu) return;
+
         // Get Entry by Index
-        size_t currentIndex = rootMenu->getCurrentSelect();
-        auto& item = rootMenu->getEntries()[currentIndex];
+        size_t currentIndex = rootMenu->activeMenu->getactiveSelect();
+        if (currentIndex >= rootMenu->activeMenu->getEntries().size()) return;
+
+        auto& item = rootMenu->activeMenu->getEntries()[currentIndex];
         // Update Entry Values
         std::string newTitle = item.title;
         if (item.state) {
             newTitle = newTitle.substr(0, newTitle.find(" - On")) + " - Off";
-            rootMenu->updateMenuItem(currentIndex, false, newTitle);
+            rootMenu->activeMenu->updateMenuItem(currentIndex, false, newTitle);
         } else {
             newTitle = newTitle.substr(0, newTitle.find(" - Off")) + " - On";
-            rootMenu->updateMenuItem(currentIndex, true, newTitle);
+            rootMenu->activeMenu->updateMenuItem(currentIndex, true, newTitle);
         }
     }
 };
 
 int main() {
-    ExampleMenuManager manager;
+    ExampleMenuManager manager("Main Menu", true);
     manager.run();
-    
+
     return 0;
 }
