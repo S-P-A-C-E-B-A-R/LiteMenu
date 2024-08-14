@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug concept", // doesn't matter but make it descriptive
+            "name": "Debug example main", // doesn't matter but make it descriptive
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/build/debug/concept", // compiled binary from build step
+            "program": "${workspaceRoot}/build/debug/example_main.o", // compiled binary from build step
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

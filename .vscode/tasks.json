@@ -7,8 +7,9 @@
             "args": [
                 "-g",                // Enable debug information
                 "-std=c++17",
-                "${workspaceRoot}/src/concept.cpp", // Your source file
-                "-o", "${workspaceRoot}/build/debug/concept" // Output executable
+                "${workspaceRoot}/examples/main.cpp", // Your source file
+                "${workspaceRoot}/src/LiteMenu.cpp",
+                "-o", "${workspaceRoot}/build/debug/example_main.o" // Output executable
             ],
             "group": {
                 "kind": "build",
