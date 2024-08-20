@@ -42,6 +42,7 @@ private:
      */
     struct MenuItem {
         std::string title;                      ///< The text displayed for the menu item.
+        bool submenu;                           ///< Whether the menu item is a link to a submenu.
         bool visible;                           ///< Whether the menu item is visible in the menu.
         bool state;                             ///< Optional state for the menu item (e.g., toggled on/off).
         std::function<void()> action;           ///< The function to be executed when the menu item is selected.
@@ -55,10 +56,12 @@ private:
          * @param action The function to be called when the menu item is selected.
          */
         MenuItem(const std::string& text,
+                bool submenu,
                 bool visible,
                 bool state,
                 std::function<void()> action = nullptr)
             : title(text),
+            submenu(submenu),
             visible(visible),
             state(state),
             action(action) {}
@@ -129,11 +132,13 @@ public:
      * @brief Adds a new item to the menu.
      * 
      * @param title The display text for the menu item.
+     * @param submenu The status as a menu item or submenu link.
      * @param visible The visibility status of the menu item.
      * @param state The initial toggleable state of the menu item.
      * @param action The function to be called when the menu item is selected.
      */
     void AddMenuItem(const std::string& title,
+                     bool submenu,
                      bool visible,
                      bool state,
                      std::function<void()> action = nullptr);

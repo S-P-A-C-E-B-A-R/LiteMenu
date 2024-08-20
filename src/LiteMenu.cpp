@@ -73,14 +73,16 @@ void Menu::navigate(HMI navigation) {
 
 // AddMenuItem: Adds a new item to the current menu.
 // - 'title' is the display text for the item.
+// - 'submenu' determines if the item is a submenu or entry.
 // - 'visible' determines if the item is shown in the menu.
 // - 'state' is an optional toggleable state (e.g., on/off).
 // - 'action' is the function to execute when the item is selected.
 void Menu::AddMenuItem(const std::string& title,
+                      bool submenu,
                       bool visible,
                       bool state,
                       std::function<void()> action) {
-    activeMenu->entries.emplace_back(title, visible, state, action);
+    activeMenu->entries.emplace_back(title, submenu, visible, state, action);
 }
 
 // AddSubMenu: Adds a sub-menu to the current menu.
@@ -89,12 +91,12 @@ void Menu::AddSubMenu(const std::string& title, Menu* submenu) {
     submenu->previousMenu = activeMenu;  // Set the previous menu of the sub-menu to the current menu.
 
     // Add a "Back" menu item to return to the previous menu when selected.
-    submenu->AddMenuItem("Back", true, false, [this, submenu]() {
+    submenu->AddMenuItem("Back", false, true, false, [this, submenu]() {
         activeMenu = submenu->previousMenu;
     });
 
     // Add the sub-menu as a selectable item in the current menu.
-    AddMenuItem(title, true, false, [this, submenu]() {
+    AddMenuItem(title, true, true, false, [this, submenu]() {
         activeMenu = submenu;
     });
 

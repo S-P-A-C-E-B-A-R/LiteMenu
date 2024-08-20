@@ -25,24 +25,25 @@ private:
     std::unique_ptr<Menu> rootMenu;
 
     void setup() {
-        rootMenu->AddMenuItem("Exit", true, false, [this]() { rootMenu.reset(); });
-        rootMenu->AddMenuItem("Toggle Option - Off", true, false, [this]() { toggleMenuItem(); });
+        rootMenu->AddMenuItem("Exit", false, true, false, [this]() {
+                rootMenu.reset(); 
+            });
 
-        // Create a new submenu dynamically
-        auto submenuAlpha = new Menu("SubMenu Alpha", false);
-        rootMenu->AddSubMenu("SubMenu Alpha", submenuAlpha);
+        // Demo Entry
+        rootMenu->AddMenuItem("Demo Action", false, true, false, [this]() {
+                std::cout << "Hello World" << std::endl; 
+            });
 
-        // Add items to the submenu
-        submenuAlpha->AddMenuItem("Alpha Option", true, false);
-        submenuAlpha->AddMenuItem("Alpha Option - Off", true, false, [this]() { toggleMenuItem(); });
+        // Demo Entry
+        rootMenu->AddMenuItem("Demo Toggle - Off", false, true, false, [this]() { 
+                toggleMenuItem(); 
+            });
 
-        // Create a new submenu dynamically
-        auto submenuBeta = new Menu("SubMenu Beta", false);
-        rootMenu->AddSubMenu("SubMenu Beta", submenuBeta);
-
-        // Add items to the submenu
-        submenuBeta->AddMenuItem("Beta Option", true, false);
-        submenuBeta->AddMenuItem("Beta Option - Off", true, false, [this]() { toggleMenuItem(); });
+        // Demo Menu
+        auto submenuDemo = new Menu("Demo SubMenu", false);
+        rootMenu->AddSubMenu("Demo SubMenu", submenuDemo);
+        auto subsubmenuDemo = new Menu("Demo SubSubMenu", false);
+        submenuDemo->AddSubMenu("Demo SubSubMenu", subsubmenuDemo);
     }
 
     void printMenu() const {
@@ -56,10 +57,15 @@ private:
 
         for (size_t i = 0; i < entries.size(); ++i) {
             if (entries[i].visible) {
+                // Determine entry type, visibility and state representation
+                std::string entrytype = entries[i].submenu ? "Menu" : "Item"; 
+                std::string visibility = entries[i].visible ? "Vsbl" :"Invs";
+                std::string state = entries[i].state ? "T" : "F";
+                // Print each entry in the format [TypeVisibility,State] followed by the title
                 std::cout << (i == rootMenu->activeMenu->getactiveSelect() ? " > " : "   ")
-                          << (entries[i].state ? " [T] " : " [F] ")
-                          << entries[i].title
-                          << "\n";
+                        << "[" << entrytype << "," << visibility << "," << state << "] "
+                        << entries[i].title
+                        << "\n";
             }
         }
     }
