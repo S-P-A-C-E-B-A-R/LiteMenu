@@ -159,10 +159,9 @@ public:
     /**
      * @brief Adds a sub-menu to the current menu.
      * 
-     * @param title The display text for the sub-menu entry.
      * @param submenu Pointer to the sub-menu to be added.
      */
-    void AddSubMenu(const std::string& title, Menu* submenu);
+    void AddSubMenu(Menu* submenu);
 };
 
 #endif // LITEMENU_H

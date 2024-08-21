@@ -87,7 +87,7 @@ void Menu::AddMenuItem(const std::string& title,
 
 // AddSubMenu: Adds a sub-menu to the current menu.
 // A "Back" option is automatically added to return to the previous menu.
-void Menu::AddSubMenu(const std::string& title, Menu* submenu) {
+void Menu::AddSubMenu(Menu* submenu) {
     submenu->previousMenu = activeMenu;  // Set the previous menu of the sub-menu to the current menu.
 
     // Add a "Back" menu item to return to the previous menu when selected.
@@ -96,7 +96,7 @@ void Menu::AddSubMenu(const std::string& title, Menu* submenu) {
     });
 
     // Add the sub-menu as a selectable item in the current menu.
-    AddMenuItem(title, true, true, false, [this, submenu]() {
+    AddMenuItem(submenu->getHeading(), true, true, false, [this, submenu]() {
         activeMenu = submenu;
     });
 
