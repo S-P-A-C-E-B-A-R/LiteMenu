@@ -30,9 +30,6 @@
 
 class Menu {
 private:
-    std::string heading;                        ///< The title or heading of the menu.
-    bool behaveLoop;                            ///< Determines if the menu loops at boundaries when navigating.
-    std::vector<Menu*> subMenus;                ///< List of sub-menus under this menu.
 
     /**
      * @struct MenuItem
@@ -67,14 +64,34 @@ private:
             action(action) {}
     };
 
-    std::vector<MenuItem> entries;  ///< List of menu items in this menu.
+    // Struct to hold menu data
+    struct Submenu {
+        Menu* parentMenu;               ///< Pointer to the parent menu.
+        size_t Selection;               ///< Current Selection in Menu.
+        std::string heading;            ///< The title or heading of the menu.
+        bool behaveLoop;                ///< Determines if the menu loops at boundaries when navigating.
+        std::vector<MenuItem> entries;  ///< List of menu items in this menu.
+
+        Submenu(Menu* parentMenu, const std::string& heading, bool behaveLoop)
+            : parentMenu(parentMenu), heading(heading), behaveLoop(behaveLoop) {}
+
+        /// Function to get the heading of the submenu.
+        std::string getHeading() const {
+            return heading;
+        }
+
+        
+    };
+
+
+    // Navigational Data
+    std::vector<Submenu> MenuTree;  ///< Vector of all Menus
+    Submenu* currentMenu;              ///< Pointer to the currently active menu (for navigation).
+
+    // Private methods
+    Submenu* findMenuByHeading(const std::string& heading);
 
 public:
-    Menu* activeMenu;              ///< Pointer to the currently active menu (for navigation).
-    size_t activeSelect;           ///< Index of the currently selected menu item.
-    Menu* previousMenu;            ///< Pointer to the previously active menu.
-    size_t previousSelect;         ///< Index of the previously selected menu item.
-
     /**
      * @enum HMI
      * @brief Abstract representation of navigation directions.
@@ -91,7 +108,7 @@ public:
      * @param heading The heading or title of the menu.
      * @param loop If true, the menu loops when navigating beyond the first or last item.
      */
-    Menu(const std::string& heading,bool loop);
+    Menu(const std::string& heading, bool loop);
 
     /**
      * @brief Destructor for the Menu class.
@@ -117,7 +134,7 @@ public:
      * 
      * @return The index of the currently selected menu item.
      */
-    size_t getactiveSelect() const;
+    size_t getSelection() const;
 
     /**
      * @brief Handles navigation within the menu.
@@ -137,7 +154,8 @@ public:
      * @param state The initial toggleable state of the menu item.
      * @param action The function to be called when the menu item is selected.
      */
-    void AddMenuItem(const std::string& title,
+    void AddMenuItem(const std::string& parentHeading,
+                     const std::string& title,
                      bool submenu,
                      bool visible,
                      bool state,
@@ -161,7 +179,9 @@ public:
      * 
      * @param submenu Pointer to the sub-menu to be added.
      */
-    void AddSubMenu(Menu* submenu);
+    void AddSubMenu(const std::string&  parentMenu,
+                    const std::string& heading,
+                    bool loop);
 };
 
 #endif // LITEMENU_H
