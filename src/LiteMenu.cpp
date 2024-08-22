@@ -89,44 +89,43 @@ size_t LiteMenu::getSelection() const {
     return currentMenu ? currentMenu->selection : 0;
 }
 
-void LiteMenu::getInput() {
-    char command;
-    std::cout << "\nCommand (w, s, d): ";
-    std::cin >> command;
-
-    if (!std::isalpha(static_cast<unsigned char>(command))) {
-        std::cout << "Invalid input!" << std::endl;
+void LiteMenu::navigate(HMI navigation) {
+    if (!currentMenu) {
+        std::cout << "No menu available for navigation!" << std::endl;
         return;
     }
 
-    command = std::toupper(static_cast<unsigned char>(command));
+    switch (navigation) {
+        case HMI::enter:
+            {
+                auto& selectedEntry = currentMenu->entries[currentMenu->selection];
+                if (selectedEntry.action) {
+                    selectedEntry.action();
+                } else if (selectedEntry.submenu) {
+                    auto newMenu = findMenuByHeading(selectedEntry.title);
+                    if (newMenu) {
+                        currentMenu = newMenu;
+                    } else {
+                        std::cout << "Submenu not found!" << std::endl;
+                    }
+                }
+            }
+            break;
 
-    switch (command) {
-        case 'W':
+        case HMI::up:
             if (currentMenu->selection > 0) {
                 --currentMenu->selection;
             } else if (currentMenu->behaveLoop) {
                 currentMenu->selection = currentMenu->entries.size() - 1;
             }
             break;
-        case 'S':
+
+        case HMI::down:
             if (currentMenu->selection < currentMenu->entries.size() - 1) {
                 ++currentMenu->selection;
             } else if (currentMenu->behaveLoop) {
                 currentMenu->selection = 0;
             }
-            break;
-        case 'D': {
-            auto& selectedEntry = currentMenu->entries[currentMenu->selection];
-            if (selectedEntry.action) {
-                selectedEntry.action();
-            } else if (selectedEntry.submenu) {
-                currentMenu = findMenuByHeading(selectedEntry.title);
-            }
-            break;
-        }
-        default:
-            std::cout << "Invalid input!" << std::endl;
             break;
     }
 }

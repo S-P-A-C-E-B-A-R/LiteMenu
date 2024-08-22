@@ -26,25 +26,61 @@ void printMenu(const LiteMenu& menu) {
     }
 }
 
+void getInput(LiteMenu& menu) {
+    char command;
+    std::cout << "\nCommand (w, s, d): ";
+    std::cin >> command;
+
+    // Sanitize the input
+    if (!std::isalpha(static_cast<unsigned char>(command))) {
+        std::cout << "Invalid input!" << std::endl;
+        return;
+    }
+
+    command = std::toupper(static_cast<unsigned char>(command));
+
+    switch (command) {
+        case 'W':
+            menu.navigate(LiteMenu::HMI::up);
+            break;
+        case 'S':
+            menu.navigate(LiteMenu::HMI::down);
+            break;
+        case 'D':
+            menu.navigate(LiteMenu::HMI::enter);
+            break;
+        default:
+            std::cout << "Invalid input!" << std::endl;
+            break;
+    }
+
+    // After navigation, check if the menu has changed
+    if (menu.getMenuEntries().empty()) {
+        std::cout << "Menu is no longer available!" << std::endl;
+        return;
+    }
+}
+
+
+
 int main() {
     LiteMenu menu;
 
     menu.addMenuLevel("", "Main Menu", true);
+
     menu.addMenuLevel("Main Menu", "Menu Alpha", true);
-    menu.addMenuItem("Main Menu", "Hello World", false, true, false, [](){ std::cout << "Hello World" << std::endl; });
-    menu.addMenuItem("Main Menu", "Demo Toggle - Off", false, true, false, [&menu]() { menu.toggleMenuItem(); });
     menu.addMenuLevel("Menu Alpha", "Menu Alpha Lvl 1", true);
     menu.addMenuLevel("Menu Alpha Lvl 1", "Menu Alpha Lvl 2", true);
+
+    menu.addMenuItem("Main Menu", "Hello World", false, true, false, [](){ std::cout << "Hello World" << std::endl; });
+    menu.addMenuItem("Main Menu", "Demo Toggle - Off", false, true, false, [&menu]() { menu.toggleMenuItem(); });
     menu.addMenuLevel("Main Menu", "Menu Beta", true);
     menu.addMenuItem("Menu Beta", "Hello Planet", false, true, false, [](){ std::cout << "Hello Planet" << std::endl; });
-
-    //menu.debugMenuTree();
 
     while (true) {
         //menu.debugMenuTree();
         printMenu(menu);
-        menu.getInput();
-        //getInput(menu);
+        getInput(menu);
     }
 
     return 0;

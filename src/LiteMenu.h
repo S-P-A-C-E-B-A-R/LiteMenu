@@ -34,7 +34,6 @@ private:
 
     std::vector<std::shared_ptr<Submenu>> menuTree;
     std::shared_ptr<Submenu> currentMenu;
-
     std::shared_ptr<Submenu> findMenuByHeading(const std::string& heading) const;
 public:
     LiteMenu();
@@ -46,8 +45,16 @@ public:
     size_t                          getSelection() const;
     std::vector<LiteMenu::MenuItem> getMenuEntries() const;
 
+    // WIP
+    enum class HMI {
+        up,    ///< Move selection up.
+        down,  ///< Move selection down.
+        enter  ///< Select the current menu item or enter a sub-menu.
+    };
+
+    void navigate(HMI navigation);
+
     // Things to API-TIZE ;-)
-    void getInput();
     void toggleMenuItem();
 };
 
