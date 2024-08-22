@@ -77,27 +77,16 @@ void LiteMenu::debugMenuTree() const {
     }
 }
 
-void LiteMenu::printMenu() const {
-    if (!currentMenu) return;
+std::string LiteMenu::getMenuTitle() const {
+    return currentMenu ? currentMenu->heading : "";
+}
 
-    const auto& entries = currentMenu->entries;
-    if (entries.empty()) return;
+std::vector<LiteMenu::MenuItem> LiteMenu::getMenuEntries() const {
+    return currentMenu ? currentMenu->entries : std::vector<MenuItem>{};
+}
 
-    std::cout << "\n" << currentMenu->heading << "\n";
-    std::cout << std::string(currentMenu->heading.length(), '=') << "\n";
-
-    for (size_t i = 0; i < entries.size(); ++i) {
-        if (entries[i].visible) {
-            std::string entryType = entries[i].submenu ? "Menu" : "Item";
-            std::string visibility = entries[i].visible ? "Vsbl" : "Invs";
-            std::string state = entries[i].state ? "T" : "F";
-            
-            std::cout << (i == currentMenu->selection ? " > " : "   ")
-                      << "[" << entryType << "," << visibility << "," << state << "] "
-                      << entries[i].title
-                      << "\n";
-        }
-    }
+size_t LiteMenu::getSelection() const {
+    return currentMenu ? currentMenu->selection : 0;
 }
 
 void LiteMenu::getInput() {

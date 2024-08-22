@@ -9,15 +9,6 @@
 #include <memory>
 
 class LiteMenu {
-public:
-    LiteMenu();
-    void addMenuLevel(const std::string& parentHeading, const std::string& heading, bool loop);
-    void addMenuItem(const std::string& parentHeading, const std::string& title, bool submenu, bool visible, bool state, std::function<void()> action = nullptr);
-    void debugMenuTree() const;
-    void printMenu() const;
-    void getInput();
-    void toggleMenuItem();
-
 private:
     struct MenuItem {
         std::string title;
@@ -45,6 +36,19 @@ private:
     std::shared_ptr<Submenu> currentMenu;
 
     std::shared_ptr<Submenu> findMenuByHeading(const std::string& heading) const;
+public:
+    LiteMenu();
+    void addMenuLevel(const std::string& parentHeading, const std::string& heading, bool loop);
+    void addMenuItem(const std::string& parentHeading, const std::string& title, bool submenu, bool visible, bool state, std::function<void()> action = nullptr);
+    void debugMenuTree() const;
+
+    std::string                     getMenuTitle() const;
+    size_t                          getSelection() const;
+    std::vector<LiteMenu::MenuItem> getMenuEntries() const;
+
+    // Things to API-TIZE ;-)
+    void getInput();
+    void toggleMenuItem();
 };
 
 #endif // LITEMENU_H
