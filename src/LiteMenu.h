@@ -67,28 +67,23 @@ private:
     // Struct to hold menu data
     struct Submenu {
         Menu* parentMenu;               ///< Pointer to the parent menu.
-        size_t Selection;               ///< Current Selection in Menu.
         std::string heading;            ///< The title or heading of the menu.
+        size_t Selection;               ///< Current Selection in Menu.
         bool behaveLoop;                ///< Determines if the menu loops at boundaries when navigating.
         std::vector<MenuItem> entries;  ///< List of menu items in this menu.
 
         Submenu(Menu* parentMenu, const std::string& heading, bool behaveLoop)
-            : parentMenu(parentMenu), heading(heading), behaveLoop(behaveLoop) {}
+            : parentMenu(parentMenu), heading(heading), Selection(0),behaveLoop(behaveLoop) {}
 
         /// Function to get the heading of the submenu.
         std::string getHeading() const {
             return heading;
         }
-
-        
     };
 
-
-    // Navigational Data
+    // Navigational Fixtures
     std::vector<Submenu> MenuTree;  ///< Vector of all Menus
     Submenu* currentMenu;              ///< Pointer to the currently active menu (for navigation).
-
-    // Private methods
     Submenu* findMenuByHeading(const std::string& heading);
 
 public:
@@ -177,9 +172,11 @@ public:
     /**
      * @brief Adds a sub-menu to the current menu.
      * 
-     * @param submenu Pointer to the sub-menu to be added.
+     * @param parentHeading The heading of the parent menu.
+     * @param heading The heading of the sub-menu to be added.
+     * @param loop If true, the sub-menu will loop at boundaries when navigating.
      */
-    void AddSubMenu(const std::string&  parentMenu,
+    void AddSubMenu(const std::string& parentHeading,
                     const std::string& heading,
                     bool loop);
 };

@@ -6,6 +6,8 @@
             "command": "clang++",
             "args": [
                 "-g",                // Enable debug information
+                "-Wall",
+                "-Wextra",
                 "-std=c++17",
                 "${workspaceRoot}/examples/main.cpp", // Your source file
                 "${workspaceRoot}/src/LiteMenu.cpp",

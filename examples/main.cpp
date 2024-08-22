@@ -9,8 +9,7 @@
 
 class DemoMenuManager {
 public:
-    DemoMenuManager(const std::string& title, bool loop) {
-        DemoMenuSpawnPoint = new Menu(title, loop);
+    DemoMenuManager() {
         setup();
     }
 
@@ -22,9 +21,12 @@ public:
     }
 
 private:
-    Menu* DemoMenuSpawnPoint;
+    std::unique_ptr<Menu> DemoMenuSpawnPoint;
 
     void setup() {
+        // Demo Menu Root
+        DemoMenuSpawnPoint->AddSubMenu("Main Menu", "Main Menu", false);
+
         // Demo Entry
         DemoMenuSpawnPoint->AddMenuItem("Main Menu", "Demo Action", false, true, false, []() { 
             std::cout << "Hello World" << std::endl; 
@@ -50,11 +52,9 @@ private:
 
         for (size_t i = 0; i < entries.size(); ++i) {
             if (entries[i].visible) {
-                // Determine entry type, visibility and state representation
                 std::string entryType = entries[i].submenu ? "Menu" : "Item"; 
                 std::string visibility = entries[i].visible ? "Vsbl" : "Invs";
                 std::string state = entries[i].state ? "T" : "F";
-                // Print each entry in the format [TypeVisibility,State] followed by the title
                 std::cout << (i == DemoMenuSpawnPoint->getSelection() ? " > " : "   ")
                         << "[" << entryType << "," << visibility << "," << state << "] "
                         << entries[i].title
@@ -68,7 +68,6 @@ private:
         std::cout << "\nCommand (w, s, d): ";
         std::cin >> command;
 
-        // Sanitize the input
         if (!std::isalpha(static_cast<unsigned char>(command))) {
             std::cout << "Invalid input!" << std::endl;
             return;
@@ -90,23 +89,15 @@ private:
                 std::cout << "Invalid input!" << std::endl;
                 break;
         }
-
-        // After navigation, check if the menu has changed
-        if (!DemoMenuSpawnPoint) {
-            std::cout << "Menu is no longer available!" << std::endl;
-            return;
-        }
     }
 
     void toggleMenuItem() {
         if (!DemoMenuSpawnPoint) return;
 
-        // Get Entry by Index
         size_t currentIndex = DemoMenuSpawnPoint->getSelection();
         if (currentIndex >= DemoMenuSpawnPoint->getEntries().size()) return;
 
         auto& item = DemoMenuSpawnPoint->getEntries()[currentIndex];
-        // Update Entry Values
         std::string newTitle = item.title;
         if (item.state) {
             newTitle = newTitle.substr(0, newTitle.find(" - On")) + " - Off";
@@ -119,7 +110,7 @@ private:
 };
 
 int main() {
-    DemoMenuManager manager("Main Menu", true);
+    DemoMenuManager manager;
     manager.run();
 
     return 0;
