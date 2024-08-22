@@ -10,7 +10,7 @@
                 "-Wextra",
                 "-std=c++17",
                 "${workspaceRoot}/examples/main.cpp", // Your source file
-                "${workspaceRoot}/src/LiteMenu.cpp",
+                //"${workspaceRoot}/src/LiteMenu.cpp",
                 "-o", "${workspaceRoot}/build/debug/example_main.o" // Output executable
             ],
             "group": {
