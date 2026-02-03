@@ -82,7 +82,7 @@ void Menu::AddMenuItem(const std::string& title,
                       bool visible,
                       bool state,
                       std::function<void()> action) {
-    activeMenu->entries.emplace_back(title, submenu, visible, state, action);
+    this->entries.emplace_back(title, submenu, visible, state, action);
 }
 
 // AddSubMenu: Adds a sub-menu to the current menu.
