@@ -7,53 +7,70 @@
 #include <cctype>
 #include "../src/LiteMenu.h"
 
-class DemoMenuManager {
+class MenuApplication {
 public:
-    DemoMenuManager(const std::string& title, bool loop) 
-        : DemoMenuSpawnPoint(std::make_unique<Menu>(title, loop)) {
-        setup();
+    MenuApplication(const std::string& title, bool loop) 
+        : mainMenu(std::make_unique<Menu>(title, loop)) {
+        initializeMenus();
     }
 
     void run() {
-        while (DemoMenuSpawnPoint) {
-            printMenu();
-            getInput();
+        while (mainMenu) {
+            displayCurrentMenu();
+            processUserInput();
         }
     }
 
 private:
-    std::unique_ptr<Menu> DemoMenuSpawnPoint;
+    std::unique_ptr<Menu> mainMenu;
 
-    void setup() {
-        DemoMenuSpawnPoint->AddMenuItem("Exit", false, true, false, [this]() {
-                DemoMenuSpawnPoint.reset(); 
-            });
+    void initializeMenus() {
+        mainMenu->AddMenuItem("Exit Application", false, true, false, [this]() {
+            mainMenu.reset(); 
+        });
 
-        // Demo Entry
-        DemoMenuSpawnPoint->AddMenuItem("Demo Action", false, true, false, [this]() {
-                std::cout << "Hello World" << std::endl; 
-            });
+        // Level 0 Actions
+        mainMenu->AddMenuItem("Level 0 Action", false, true, false, [this]() {
+            std::cout << "Level 0 action executed!" << std::endl; 
+        });
 
-        // Demo Entry
-        DemoMenuSpawnPoint->AddMenuItem("Demo Toggle - Off", false, true, false, [this]() { 
-                toggleMenuItem(); 
-            });
+        mainMenu->AddMenuItem("Level 0 Toggle - Off", false, true, false, [this]() { 
+            toggleCurrentMenuItem(); 
+        });
 
-        // Demo Menu
-        auto submenuDemo = new Menu("Demo SubMenu", false);
-        DemoMenuSpawnPoint->AddSubMenu(submenuDemo);
-        auto subsubmenuDemo = new Menu("Demo Nested SubMenu", false);
-        submenuDemo->AddSubMenu(subsubmenuDemo);
+        // Level 1 Menu
+        auto level1Menu = new Menu("Level 1 Menu", false);
+        mainMenu->AddSubMenu(level1Menu);
+        
+        // Level 1 Actions
+        level1Menu->AddMenuItem("Level 1 Action", false, true, false, [this]() {
+            std::cout << "Level 1 action executed!" << std::endl;
+        });
+        
+        // Level 2 Menu
+        auto level2Menu = new Menu("Level 2 Menu", false);
+        level1Menu->AddSubMenu(level2Menu);
+        
+        // Level 2 Menu Items
+        level2Menu->AddMenuItem("Level 2 Action 1", false, true, false, [this]() {
+            std::cout << "Level 2 action 1 executed!" << std::endl; 
+        });
+        level2Menu->AddMenuItem("Level 2 Action 2", false, true, false, [this]() {
+            std::cout << "Level 2 action 2 executed!" << std::endl; 
+        });
+        level2Menu->AddMenuItem("Level 2 Toggle - Off", false, true, false, [this]() {
+            toggleCurrentMenuItem();  
+        });
     }
 
-    void printMenu() const {
-        if (!DemoMenuSpawnPoint || !DemoMenuSpawnPoint->activeMenu) return;
+    void displayCurrentMenu() const {
+        if (!mainMenu || !mainMenu->activeMenu) return;
 
-        const auto& entries = DemoMenuSpawnPoint->activeMenu->getEntries();
+        const auto& entries = mainMenu->activeMenu->getEntries();
         if (entries.empty()) return;
 
-        std::cout << "\n" << DemoMenuSpawnPoint->activeMenu->getHeading() << "\n";
-        std::cout << std::string(DemoMenuSpawnPoint->activeMenu->getHeading().length(), '=') << "\n";
+        std::cout << "\n" << mainMenu->activeMenu->getHeading() << "\n";
+        std::cout << std::string(mainMenu->activeMenu->getHeading().length(), '=') << "\n";
 
         for (size_t i = 0; i < entries.size(); ++i) {
             if (entries[i].visible) {
@@ -62,7 +79,7 @@ private:
                 std::string visibility = entries[i].visible ? "Vsbl" :"Invs";
                 std::string state = entries[i].state ? "T" : "F";
                 // Print each entry in the format [TypeVisibility,State] followed by the title
-                std::cout << (i == DemoMenuSpawnPoint->activeMenu->getactiveSelect() ? " > " : "   ")
+                std::cout << (i == mainMenu->activeMenu->getactiveSelect() ? " > " : "   ")
                         << "[" << entrytype << "," << visibility << "," << state << "] "
                         << entries[i].title
                         << "\n";
@@ -70,9 +87,9 @@ private:
         }
     }
 
-    void getInput() {
+    void processUserInput() {
         char command;
-        std::cout << "\nCommand (w, s, d): ";
+        std::cout << "\nNavigation (w=up, s=down, d=select): ";
         std::cin >> command;
 
         // Sanitize the input
@@ -85,49 +102,49 @@ private:
 
         switch (command) {
             case 'W':
-                DemoMenuSpawnPoint->activeMenu->navigate(Menu::HMI::up);
+                mainMenu->navigate(Menu::HMI::up);
                 break;
             case 'S':
-                DemoMenuSpawnPoint->activeMenu->navigate(Menu::HMI::down);
+                mainMenu->navigate(Menu::HMI::down);
                 break;
             case 'D':
-                DemoMenuSpawnPoint->activeMenu->navigate(Menu::HMI::enter);
+                mainMenu->navigate(Menu::HMI::enter);
                 break;
             default:
                 std::cout << "Invalid input!" << std::endl;
                 break;
         }
 
-        // After navigation, check if the menu has changed
-        if (!DemoMenuSpawnPoint || !DemoMenuSpawnPoint->activeMenu) {
-            std::cout << "Menu is no longer available!" << std::endl;
+        // After navigation, check if the menu is still available
+        if (!mainMenu || !mainMenu->activeMenu) {
+            std::cout << "Application is no longer available!" << std::endl;
             return;
         }
     }
 
-    void toggleMenuItem() {
-        if (!DemoMenuSpawnPoint || !DemoMenuSpawnPoint->activeMenu) return;
+    void toggleCurrentMenuItem() {
+        if (!mainMenu || !mainMenu->activeMenu) return;
 
         // Get Entry by Index
-        size_t currentIndex = DemoMenuSpawnPoint->activeMenu->getactiveSelect();
-        if (currentIndex >= DemoMenuSpawnPoint->activeMenu->getEntries().size()) return;
+        size_t currentIndex = mainMenu->activeMenu->getactiveSelect();
+        if (currentIndex >= mainMenu->activeMenu->getEntries().size()) return;
 
-        auto& item = DemoMenuSpawnPoint->activeMenu->getEntries()[currentIndex];
+        auto& item = mainMenu->activeMenu->getEntries()[currentIndex];
         // Update Entry Values
         std::string newTitle = item.title;
         if (item.state) {
             newTitle = newTitle.substr(0, newTitle.find(" - On")) + " - Off";
-            DemoMenuSpawnPoint->activeMenu->updateMenuItem(currentIndex, false, newTitle);
+            mainMenu->activeMenu->updateMenuItem(currentIndex, false, newTitle);
         } else {
             newTitle = newTitle.substr(0, newTitle.find(" - Off")) + " - On";
-            DemoMenuSpawnPoint->activeMenu->updateMenuItem(currentIndex, true, newTitle);
+            mainMenu->activeMenu->updateMenuItem(currentIndex, true, newTitle);
         }
     }
 };
 
 int main() {
-    DemoMenuManager manager("Main Menu", true);
-    manager.run();
-
+    MenuApplication application("Main Application", true);
+    application.run();
+    
     return 0;
 }
