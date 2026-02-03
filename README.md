@@ -1,38 +1,220 @@
-# Text Menu Class for Embedded Systems
+# LiteMenu - C++ Menu Library for Embedded Systems
 
-## Class Description
+A lightweight, hierarchical menu system designed for embedded applications and resource-constrained environments. Complete with build system and comprehensive examples.
 
-### Overview
-The `TextMenu` class in C++ represents a text-based menu system designed for embedded devices. This class supports multiple levels of menus with headings and entries, each capable of navigating up/down through submenu levels, toggling states (On/Off), or calling external functions. It maintains the state of the current menu level and the selected item, and provides show/hide functionality for menu entries. 
+## Overview
 
-### Features
-- **Navigation**: Supports navigation between menu levels and entries using configurable input controls (e.g., Up/Down/Enter, Down/Enter, Short/Long Press).
-- **State Management**: Remembers the current submenu level and selected item.
-- **Entry Status**: Menu entries can be shown or hidden dynamically.
-- **Abstract Controls**: Designed to work with any one to three input interface or display system.
-- **Boundary Behavior**: Configurable behavior for scrolling past the top or bottom of the menu.
+The `Menu` class provides a complete text-based menu system with support for nested sub-menus, configurable navigation, and dynamic menu item management. Built with embedded systems in mind, it offers memory-efficient operation while maintaining flexibility for various use cases.
 
-### Memory and Performance
-- **Efficiency**: Optimized for memory and performance, suitable for embedded applications.
-- **Bitwise Operators**: Utilizes bitwise operations to enhance performance and reduce memory usage.
-- **Function Pointers**: Allows dynamic calls to functions associated with menu entries.
+## Features
 
-### Instantiation
-- **Separation**: Menu instantiation is separate from the class definition to enhance ease of menu definition and management.
+- **Hierarchical Navigation**: Multi-level menu system with automatic "Back" functionality
+- **Configurable Behavior**: Optional loop-at-boundaries navigation
+- **Dynamic Items**: Runtime addition and modification of menu items
+- **State Management**: Toggle states for menu items (On/Off)
+- **Visibility Control**: Show/hide menu items dynamically
+- **Function Binding**: Associate custom actions with menu items
+- **Memory Efficient**: RAII-based memory management with smart pointers
+- **Cross-Platform**: Standard C++17 compatible implementation
 
-## Example Application & Storyboard
+## Quick Start
 
-### Application
-An embedded device with a text display and three input controls (Up, Down, Enter) will use the `TextMenu` class. The menu system should provide an intuitive navigation experience for users interacting with the device.
+```cpp
+#include "src/LiteMenu.h"
 
-### Storyboard
-1. **Initialization**: Device initializes and displays the main menu.
-2. **Navigation**: User presses "Down" to navigate to the next item. The menu updates to highlight the selected entry.
-3. **Selection**: User presses "Enter" to select an item. Depending on the item, the menu might navigate to a submenu, toggle an option, or call a function.
-4. **Scrolling Behavior**: If the user scrolls past the top or bottom of the menu, predefined behavior (e.g., loop or stop) is executed.
+int main() {
+    // Create main menu with looping enabled
+    Menu mainMenu("Main Menu", true);
+    
+    // Add simple menu item
+    mainMenu.AddMenuItem("Exit", false, true, false, []() {
+        std::cout << "Exiting..." << std::endl;
+    });
+    
+    // Add toggle-able item
+    mainMenu.AddMenuItem("Settings", false, true, false, []() {
+        std::cout << "Settings toggled" << std::endl;
+    });
+    
+    // Create and add submenu
+    auto* submenu = new Menu("Settings", false);
+    submenu->AddMenuItem("WiFi Config", false, true, false, []() {
+        std::cout << "WiFi configuration" << std::endl;
+    });
+    mainMenu.AddSubMenu(submenu);
+    
+    // Navigate menu
+    mainMenu.navigate(Menu::HMI::down);
+    mainMenu.navigate(Menu::HMI::enter);
+    
+    return 0;
+}
+```
 
-## Design Traceability Matrix
+## API Reference
 
-| **User Needs**                        | **Design Requirements**                  | **Design Inputs**                       | **Design Outputs**                      | **Verification**                       | **Validation**                         |
-|---------------------------------------|-----------------------------------------|----------------------------------------|----------------------------------------|---------------------------------------|----------------------------------------|
-| Easy navigation of menu items         | Implement navigation controls           | User requirements for input controls   | Class methods for Up/Down/Enter controls | Unit tests for navigation functionality | User testing for intuitive navigation  |
+### Constructor
+
+```cpp
+Menu(const std::string& heading, bool loop)
+```
+
+- **heading**: The title displayed for the menu
+- **loop**: Enable/disable loop-at-boundaries navigation
+
+### Methods
+
+#### Navigation
+```cpp
+void navigate(HMI direction)  // Navigate: up, down, or enter
+```
+
+#### Menu Management
+```cpp
+void AddMenuItem(const std::string& title, bool submenu, bool visible, bool state, std::function<void()> action = nullptr)
+void AddSubMenu(Menu* submenu)
+void updateMenuItem(size_t index, std::optional<bool> newState, std::optional<std::string> newTitle, std::optional<bool> newVisible)
+```
+
+#### Accessors
+```cpp
+const std::string& getHeading() const
+const std::vector<MenuItem>& getEntries() const
+size_t getactiveSelect() const
+```
+
+### Menu Item Properties
+
+Each menu item has the following properties:
+- **title**: Display text
+- **submenu**: Whether this item links to a submenu
+- **visible**: Whether the item is currently visible
+- **state**: Toggle state (true/false)
+- **action**: Function to execute when selected
+
+### Navigation Controls
+
+The `HMI` enum provides abstract navigation:
+```cpp
+enum class HMI {
+    up,    // Move selection up
+    down,  // Move selection down  
+    enter  // Select current item
+}
+```
+
+## Example Implementation
+
+See the complete working example in `examples/main.cpp` that demonstrates:
+
+- Creating nested menu structures
+- Implementing custom display logic
+- Handling user input (W/S/D keys for navigation, Q to quit)
+- Dynamic state updates
+- Menu traversal and back navigation
+- Real-time menu rendering
+
+The example shows how to integrate the menu system into a complete interactive application with a clean console interface.
+
+### Running the Example
+
+```bash
+# Using make
+make run-debug
+
+# Or manually
+./build/debug/litemenu_demo.exe
+```
+
+## Building
+
+### Requirements
+- C++17 compatible compiler (g++, clang++, MSVC)
+- Standard library
+- Make (for using the provided Makefile)
+
+### Using Makefile
+
+The project includes a comprehensive Makefile for easy building:
+
+```bash
+# Build debug version (default)
+make
+
+# Build debug version explicitly
+make debug
+
+# Build optimized release version
+make release
+
+# Build and run
+make run-debug      # Build and run debug version
+make run-release    # Build and run release version
+
+# Clean build artifacts
+make clean
+
+# Show available targets
+make help
+```
+
+### Manual Compilation
+
+```bash
+# Compile the example (debug)
+g++ -std=c++17 -g -I. examples/main.cpp src/LiteMenu.cpp -o menu_demo
+
+# Compile the example (release optimized)
+g++ -std=c++17 -O2 -DNDEBUG -I. examples/main.cpp src/LiteMenu.cpp -o menu_demo
+
+# Run the demo
+./menu_demo
+```
+
+## Architecture
+
+### Memory Management
+- Uses RAII principles for automatic cleanup
+- Submenus are automatically deleted when parent menu is destroyed
+- Smart pointer support for modern C++ applications
+
+### Design Patterns
+- **Hierarchical Composition**: Menu items and submenus form a tree structure
+- **Command Pattern**: Menu actions are stored as std::function objects
+- **State Pattern**: Menu maintains current selection and active menu state
+
+### Performance Considerations
+- Minimal memory footprint suitable for embedded systems
+- Efficient navigation with O(1) operations for basic movement
+- No dynamic allocations during navigation
+- Optimized builds with -O2 flag for release deployment
+
+### Build System
+- Makefile with debug and release configurations
+- Separate build directories (`build/debug`, `build/release`)
+- Cross-platform compilation support (Windows .exe generation handled automatically)
+
+## License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+
+## Contributing
+
+Contributions are welcome! Please ensure:
+- Code follows the existing style
+- Documentation is updated for new features
+- Examples are tested before submission
+
+## Use Cases
+
+### Embedded Systems
+- Industrial control panels
+- Consumer electronics menus
+- IoT device configuration
+- Medical equipment interfaces
+
+### Applications
+- Console applications
+- Testing frameworks
+- Configuration utilities
+- Interactive tools
